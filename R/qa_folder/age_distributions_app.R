@@ -46,11 +46,13 @@ pupils <- rbind(pupils_11_19, pupils)
 
 pupils <- pupils[order(year), ]
 
-  ### 1.2. adding on 15 to 20 to the new estimates
+  ### 1.2. adding on 15 to 20 to the new estimates, narrowing the full estimates to only age 20 and below
 adjusted_estimates <- mye_2011_24 %>% 
   filter(gss_code %in% adjusted_estimates$gss_code & year %in% 2019:2024 & age %in% 16:20) %>%
   rbind(adjusted_estimates) %>%
   arrange(gss_code, sex, age, year)
+
+adjusted_r_estimates <- adjusted_r_estimates[age <= 20, ]
 
 
 ## 2. reformatting and cleaning up data etc
@@ -148,13 +150,13 @@ server <- function(input, output, session){
     #### the population age distribution graph
     xmin <- 0
     xmax <- 20
-
+    
     ymin <- min(mye_sel_pop[, value], adj_sel_pop[, value], adj_r_sel_pop[, value])
     ymax <- max(mye_sel_pop[, value], adj_sel_pop[, value], adj_r_sel_pop[, value])
-
+    
     plot(x = 1, y = 1, type = "n", bty = "n", las = 1, ylab = "", xlab = "",
                 xlim = c(xmin, xmax), ylim = c(ymin, ymax))
-
+    
     lines(x = c(16, 16), y = c(ymin, ymax), col = "lightgrey", lty = 3, lwd = 2)
     
     lines(x = mye_sel_pop[, age], y = mye_sel_pop[, value], lwd = 2, col = "navy")
