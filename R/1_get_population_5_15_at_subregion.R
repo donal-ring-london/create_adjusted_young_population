@@ -27,6 +27,8 @@ unzip(tmp_zip,
 
 spc_cbm_data <- read_csv(file.path(tempdir(), "data/spc_cbm.csv"))
 
+spc_cbm_data_11_19 <- read_csv("data/intermediate/resident_pupils_lea_ncy_2011_2019_from_cbm.csv")
+
 ind_schools <- read_csv(file.path(tempdir(), "data/spc_pupils_age_and_sex.csv"))
 
 la_itl_lookup <- fread("lookups/la_itl_lookup_all.csv")
@@ -38,7 +40,7 @@ new_old_la_lookup <- fread("lookups/old_new_las_lookup.csv") # this is a lookup 
 
 ## 2. extract resident pupils in state-funded schools
 
-resident_pupils_state <- spc_cbm_data %>%
+resident_pupils_state_20_onwards <- spc_cbm_data %>%
   select(time_period, geographic_level, country_code, country_name,
          region_code, region_name, boarder,
          gss_name = la_name, gss_code = new_la_code,
@@ -66,7 +68,19 @@ resident_pupils_state <- spc_cbm_data %>%
   summarise(value = sum(value), .groups = "drop") %>%
   arrange(year, gss_code, age)
 
-resident_pupils_state <- resident_pupils_state[!grepl("E12|E92", resident_pupils_state$gss_code), ]
+resident_pupils_state_20_onwards <- resident_pupils_state_20_onwards[!grepl("E12|E92", resident_pupils_state_20_onwards$gss_code), ]
+
+resident_pupils_11_19 <- spc_cbm_data_11_19 %>%
+  mutate(age = nc_year + 4, year = acd_year - 1) %>% ## acd year was given in the format of just 4 digits, and I'm quite sure now that it's actually the second year in the xxxx/yyyy format. So if the year given is 2019, for example, I need to change it to 2018 to get it in the same year format as the pupil data for 2020-onwards. 
+  rename(gss_code = lea9, gss_name = lea_name, value = count) %>%
+  select(gss_code, gss_name, year, age, value)
+
+setdiff(resident_pupils_11_19$gss_code, resident_pupils_state_20_onwards$gss_code) ## some differences in codes between the two datasets, pre 2020 and 2020 onwards, but it'll be taken care of below in section 3. Mostly by new_old_la_lookup
+setdiff(resident_pupils_state_20_onwards$gss_code, resident_pupils_11_19$gss_code)
+
+## HERE, where stopped
+resident_pupils_state <- rbind(resident_pupils_state_20_onwards, resident_pupils_11_19) %>%
+  filter(year >= 2015)
 
 
 ## 3. combine both datasets to get the la-level population estimates
@@ -74,7 +88,7 @@ resident_pupils_state <- resident_pupils_state[!grepl("E12|E92", resident_pupils
   ### 3.1. some cleaning of the independent schools dataset, to get it in the same format as resident pupils
 pupils_independent <- ind_schools %>%
   mutate(year = as.numeric(substr(time_period, 1, 4))) %>%
-  filter(year >= 2019 & phase_type_grouping == "Independent school" & geographic_level == "Local authority" & sex == "Total") %>%
+  filter(year >= 2015 & phase_type_grouping == "Independent school" & geographic_level == "Local authority" & sex == "Total") %>%
   select(new_la_code, la_name, year, age, headcount)
 
 colnames(pupils_independent) <- c("gss_code", "gss_name", "year", "age", "value")
@@ -142,8 +156,8 @@ pupil_data_at_la[, age := as.numeric(age)]
 colnames(pupil_data_at_la)[1] <- "gss_code"
 
 saveRDS(object = pupil_data_at_la,
-        file = "data/intermediate/total_pupils_lad_5_15_2019_2024.rds") ## not automated yet, years hardcoded etc...won't take long to do
+        file = "data/intermediate/total_pupils_lad_5_15_2015_2024.rds") ## not automated yet, years hardcoded etc...won't take long to do
 
 saveRDS(object = pupil_data,
-        file = "data/intermediate/total_pupils_itl_5_15_2019_2024.rds")
+        file = "data/intermediate/total_pupils_itl_5_15_2015_2024.rds")
 

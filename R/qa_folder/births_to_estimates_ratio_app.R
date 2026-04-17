@@ -23,7 +23,8 @@ lapply(
 ## 1. reading in data
 mye_2011_24 <- data.table(readRDS("data/intermediate/mye_2011_on(2023_geog).rds"))
 
-adjusted_estimates <- data.table(readRDS("data/processed/adj_pop_0_14.rds"))
+adjusted_estimates <- data.table(readRDS("data/processed/adjusted_mye_0_15_full.rds"))
+adjusted_estimates <- adjusted_estimates[component == "population", ]
 
 adjusted_r_estimates <- data.table(readRDS("data/processed/adjusted_rebuilt_mye_backseries.rds"))
 adjusted_r_estimates <- adjusted_r_estimates[component == "population", ]
@@ -32,7 +33,7 @@ gp_data <- data.table(readRDS("data/intermediate/gp_sya_lad.rds"))
 
 births <- fread("https://data.london.gov.uk/download/2w43n/9698d0b1-663c-4594-8687-67469ce07e6d/actual_and_predicted_births.csv")
 
-pupils <- data.table(readRDS("data/intermediate/resident_pupils.rds"))
+pupils <- data.table(readRDS("data/intermediate/total_pupils_lad_5_15_2015_2024.rds"))
 
 pupils_11_19 <- fread("data/intermediate/resident_pupils_lea_ncy_2011_2019_from_cbm.csv")
 
@@ -40,9 +41,9 @@ pupils_11_19 <- fread("data/intermediate/resident_pupils_lea_ncy_2011_2019_from_
 pupils_11_19[, age := nc_year + 4]
 
 colnames(pupils_11_19)[c(1, 3, 5, 6)] <- c("gss_code", "gss_name", "value", "year")
-pupils_11_19 <- pupils_11_19[year <= 2018, c("gss_code", "gss_name", "year", "age", "value")] 
+pupils_11_19 <- pupils_11_19[year <= 2018, c("gss_code", "year", "age", "value")] 
 
-pupils <- rbind(pupils_11_19, pupils)
+#pupils <- rbind(pupils_11_19, pupils)
 
 pupils <- pupils[order(year), ]
 
@@ -91,7 +92,7 @@ colnames(births)[colnames(births) == "annual_births"] <- "value"
 ## 3. shiny app showing the ratio of births to population, for the various different sources of population estimates
 
       ### 3.1. setting the selections and creating the UI
-age_selections <- 0:10
+age_selections <- 0:18
 
 lad_selections <- c(mye_2011_24[, unique(gss_code)], "London total")
 
@@ -103,7 +104,7 @@ ui <- fluidPage(
 
   selectInput("lad", "Choose local authority", lad_selections),
 
-  plotOutput("plot")
+  plotOutput("plot", height = "650px")
 
 )
 
@@ -267,3 +268,4 @@ shinyApp(
   ui = ui,
   server = server
 )
+

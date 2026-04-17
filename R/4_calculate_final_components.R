@@ -25,7 +25,7 @@ adj_mye_0_4 <- readRDS("data/intermediate/adjusted_mye_0_4.rds")
 
 adj_pop_5_15 <- readRDS("data/intermediate/adjusted_population_estimates_5_15_lad.rds")
 
-og_mye <- readRDS("data/intermediate/mye_2011_24_rev.rds") %>%
+og_myes <- readRDS("data/intermediate/mye_2001_24_rev.rds") %>%
   filter(year >= 2011)
 
 gss_code_name_lookup <- og_myes %>% ## creating this lookup.
@@ -36,13 +36,13 @@ gss_code_name_lookup <- og_myes %>% ## creating this lookup.
 ## 2. get net international via residual change for ages 5-14 
 
 res_change_data <- og_myes %>% 
-  filter(component %in% c("births", "deaths", "internal_net") & year %in% 2019:2024 & age %in% 5:14) %>% # the years is something I'll need to automate
+  filter(component %in% c("births", "deaths", "internal_net") & year %in% 2015:2024 & age %in% 5:14) %>% # the years is something I'll need to automate
   pivot_wider(names_from = component, values_from = value) %>% 
   left_join(adj_pop_5_15, by = c("gss_code", "sex", "age", "year")) %>%
   mutate(cohort = year - age)
 
 res_change_data <- adj_mye_0_4 %>% # we need age 4 to calculate residual change for age 5 and to therefore estimate international migration. So we're binding it on here. This is a sort of ugly way to do and there are probably too many lines of code, so should go over this.
-  filter(component %in% c("births", "deaths", "internal_net", "population") & year %in% 2019:2024 & age == 4) %>%
+  filter(component %in% c("births", "deaths", "internal_net", "population") & year %in% 2015:2024 & age == 4) %>%
   pivot_wider(names_from = component, values_from = value) %>%
   mutate(cohort = year - age) %>%
   rbind(res_change_data)
@@ -53,10 +53,21 @@ res_change_data_prev <- res_change_data %>%
   rename(population_prev = population)
 
 new_international_net_5_15 <- res_change_data %>%
-  filter(age >= 5 & year >= 2020) %>%
+  filter(age >= 5 & year >= 2016) %>%
   left_join(res_change_data_prev, by = c("gss_code", "gss_name", "sex", "year", "cohort")) %>%
   mutate(international_net = population - population_prev - births - internal_net + deaths) %>%
   select(gss_code, gss_name, sex, year, age, international_net)
+
+
+## 3. using new international net calculated above for ages 5 upwards to adjust the international flows calculated in script 3 for ages 0-4
+## because, for cohorts 2020 onwards, we just rolled forward international flows estimated previously for those ages. Which means that we'll miss out on any real trends in flows after that date. So we use the flows calculated above to add in those trends. 
+## this is a harder problem that I thought it would be...a real issue is the negatives in the current flows
+
+test <- mye_2010_24 %>%
+  mutate(cohort = year - age) %>%
+  filter(year >= 2020 & cohort <= 2019 & component == "international_net")
+
+
 
 
 ## 3. aligning net international flows with original gross international flows for all ages from 0 to 14, and adjusting gross to fit net to come up with final international flows estimates
@@ -97,7 +108,7 @@ adj_mye_5_15 <- adj_pop_5_15 %>% ## reformatting the adjusted population estimat
   select(gss_code, gss_name, sex, age, value, year, component)
 
 adj_mye_5_15 <- og_myes %>%
-  filter(component %in% c("births", "deaths", "internal_in", "internal_net", "internal_out") & age %in% 5:15 & year >= 2019) %>%
+  filter(component %in% c("births", "deaths", "internal_in", "internal_net", "internal_out") & age %in% 5:15 & year >= 2015) %>%
   rbind(adj_mye_5_15)
 
 new_international_net_0_15 <- new_international_net_0_15 %>% ## reshaping and reformatting the international flows estimates
@@ -113,8 +124,8 @@ adjusted_mye_0_15_full <- adj_mye_0_4 %>%
 
 ## 5. some checks, saving the dataset
 
-adjusted_mye_0_15_full <- adjusted_mye_0_15_full %>% ## keeping to just population for 2019, getting rid of other components in dataset
-  filter(!(year == 2019 & component %in% c("births", "deaths", "internal_in", "internal_net", "internal_out", "international_in", "international_net", "international_out")))
+adjusted_mye_0_15_full <- adjusted_mye_0_15_full %>% ## keeping to just population for 2015, getting rid of other components in dataset
+  filter(!(year == 2015 & component %in% c("births", "deaths", "internal_in", "internal_net", "internal_out", "international_in", "international_net", "international_out")))
 
 saveRDS(object = adjusted_mye_0_15_full, 
         file = "data/processed/adjusted_mye_0_15_full.rds")

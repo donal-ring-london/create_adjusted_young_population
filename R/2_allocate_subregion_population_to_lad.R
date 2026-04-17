@@ -18,9 +18,9 @@ lapply(
 
 ## 1. reading in the data and lookups
 
-pupil_pop <- readRDS("data/intermediate/total_pupils_itl_5_15_2019_2024.rds")
+pupil_pop <- readRDS("data/intermediate/total_pupils_itl_5_15_2015_2024.rds")
 
-pupil_pop_lad <- readRDS("data/intermediate/total_pupils_lad_5_15_2019_2024.rds")
+pupil_pop_lad <- readRDS("data/intermediate/total_pupils_lad_5_15_2015_2024.rds")
 
 gp_data <- readRDS("data/intermediate/gp_sya_lad.rds")
 
@@ -32,7 +32,7 @@ la_itl_lookup <- read_csv("lookups/la_itl_lookup_all.csv")
 gp_data <- gp_data %>% 
   mutate(year = as.numeric(substr(extract_date, 1, 4)), 
          month = as.numeric(substr(extract_date, 6, 7))) %>%
-  filter(month == 07 & year %in% 2019:2024 & age %in% 5:15 & sex != "persons") %>%
+  filter(month == 07 & year %in% 2015:2024 & age %in% 5:15 & sex != "persons") %>%
   select(gss_code, year, sex, age, value)
 
 

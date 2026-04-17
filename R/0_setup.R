@@ -8,6 +8,7 @@ lapply(
   FUN = source
 )
 
+library(readxl)
 
 ## 1. create folders we need that we don't have
 

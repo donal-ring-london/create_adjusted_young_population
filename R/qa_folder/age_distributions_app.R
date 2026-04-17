@@ -32,23 +32,23 @@ adjusted_r_estimates <- data.table(readRDS("data/processed/adjusted_rebuilt_mye_
 
 gp_data <- data.table(readRDS("data/intermediate/gp_sya_lad.rds"))
 
-pupils <- data.table(readRDS("data/intermediate/resident_pupils.rds"))
+pupils <- data.table(readRDS("data/intermediate/total_pupils_lad_5_15_2019_2024.rds"))
 
-pupils_11_19 <- fread("data/intermediate/resident_pupils_lea_ncy_2011_2019_from_cbm.csv") ## where did this come from again?
+pupils_11_19 <- fread("data/intermediate/resident_pupils_lea_ncy_2011_2019_from_cbm.csv")
 
   ### 1.1. sub task - combining the post and pre-2019 pupil datasets
 pupils_11_19[, age := nc_year + 4]
 
 colnames(pupils_11_19)[c(1, 3, 5, 6)] <- c("gss_code", "gss_name", "value", "year")
-pupils_11_19 <- pupils_11_19[year <= 2018, c("gss_code", "gss_name", "year", "age", "value")] # undocumented/unclear which year in xxxx/yyyy was taken from full academic year, and code was hard to decipher, but I'm still fairly sure it's the first
+pupils_11_19 <- pupils_11_19[year <= 2018, c("gss_code", "year", "age", "value")] # undocumented/unclear which year in xxxx/yyyy was taken from full academic year, and code was hard to decipher, but I'm still fairly sure it's the first
 
-pupils <- rbind(pupils_11_19, pupils)
+# pupils <- rbind(pupils_11_19, pupils)
 
 pupils <- pupils[order(year), ]
 
   ### 1.2. adding on 15 to 20 to the new estimates, narrowing the full estimates to only age 20 and below
 adjusted_estimates <- mye_2011_24 %>% 
-  filter(gss_code %in% adjusted_estimates$gss_code & year %in% 2019:2024 & age %in% 16:20) %>%
+  filter(gss_code %in% adjusted_estimates$gss_code & year %in% 2015:2024 & age %in% 16:20) %>%
   rbind(adjusted_estimates) %>%
   arrange(gss_code, sex, age, year)
 
@@ -91,7 +91,7 @@ pupils <- pupils[age %in% 0:15, ]
 ## 3. creating the age distributions app
 
   ### 3.1. setting the selections and creating the ui
-year_selections <- 2019:2024
+year_selections <- 2015:2024
 
 lad_selections <- c(mye_2011_24[, unique(gss_code)], "London total")
 help("plotOutput")
@@ -193,4 +193,5 @@ shinyApp(
   ui = ui,
   server = server
 )
+
 

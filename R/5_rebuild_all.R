@@ -22,17 +22,17 @@ lapply(
 
 adjusted_mye <- readRDS("data/processed/adjusted_mye_0_15_full.rds")
 
-og_mye <- readRDS("data/intermediate/mye_2011_24_rev.rds") %>%
-  filter(year >= 2011) %>%
+og_mye <- readRDS("data/intermediate/mye_2001_24_rev.rds") %>%
+  filter(year >= 2001) %>%
   filter(!grepl("W", gss_code))
 
 ## 2. replace the components in the original myes with the new ones we've calculated for the right years and cohorts etc
 
 adjusted_mye <- adjusted_mye %>% 
-                    filter(year != 2019)
+                    filter(year != 2015)
 
 mye_new_components <- og_mye %>%
-  filter(!(age %in% 0:15 & year %in% 2020:2024)) %>%
+  filter(!(age %in% 0:15 & year %in% 2016:2024)) %>%
   rbind(adjusted_mye) %>%
   arrange(gss_code, sex, year, age)
 
@@ -44,7 +44,7 @@ mye_new_net_flows <- mye_new_components %>%
 
 rebuilt_consistent_population <- create_pop_series(mye_coc = mye_new_components, 
                           modelled_flows = mye_new_net_flows, 
-                          yr_start = 2011,
+                          yr_start = 2016,
                           yr_end = 2024, 
                           age_max = 90)
 

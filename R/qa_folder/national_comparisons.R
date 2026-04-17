@@ -71,3 +71,4 @@ for(age_sel in 0:14){
 
 par(mfrow = c(1, 1))
 
+
