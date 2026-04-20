@@ -59,7 +59,7 @@ adjusted_international_flows <- expand_grid(gss_code = unique(residual_differenc
   select(gss_code, gss_name, sex, age, value, year, component)
 
 
-## 4. rebuild the 0-4 population again, this time using the new international flows calculated above, to create the population series along with components of change that will line up with the pupil-based series
+## 4. rebuild the 0-5 population again, this time using the new international flows calculated above, to create the population series along with components of change that will line up with the pupil-based series
 
 rebuilt_population <- create_pop_series(mye_coc = mye_2010_24, 
                           modelled_flows = adjusted_international_flows,
@@ -73,7 +73,7 @@ rebuilt_population <- create_pop_series(mye_coc = mye_2010_24,
 
 ## 5. roll forward the adjusted net international flows estimates 
 
-  ### 5.1. initial calculation/modelling of international flows for ages 0-4 for cohorts 2020 onwards, based on rolling forward past averages by age
+  ### 5.1. initial calculation/modelling of international flows for ages 0-5 for cohorts 2020 onwards, based on rolling forward past averages by age
 adjusted_international_flows <- adjusted_international_flows %>% 
   mutate(cohort = year - age) %>% 
   filter(cohort %in% 2015:2019) # taking the past 5 years of flow data, for each cohort. Will need to put more thought into how to properly automate this. 
@@ -113,6 +113,8 @@ full_new_adjusted_estimates <- rbind(rebuilt_population, rebuilt_population_2020
 
 ## NOTE - actually, binding together the two datasets shouldn't happen in this script. We have all components (aside from gross international flows) for ages 0-4, but only population for ages 5-14. So save the population for 0-4 in this script, come up with the other components in another script, and bind them when they are in the same format and have everything we need in them. And after that, get gross flows for all of them all at once.  
 ## 7. binding the full 0-4 data along with the 5-14 data, for just population
+## also, separately saving the new flows calculated for age 5. 
+
 adjusted_popest <- adjusted_popest %>%
   rename(value = population)
 
@@ -122,10 +124,16 @@ adjusted_population_0_15 <- full_new_adjusted_estimates %>%
   rbind(adjusted_popest) %>%
   filter(year >= 2015) # agh, two filter calls. fix that. 
 
+age_5_new_flows <- rebuilt_population %>%
+  filter(age == 5 & component == "international_net")
 
 saveRDS(object = adjusted_population_0_15,
         file = "data/processed/adj_pop_0_15.rds") # probably should be in intermediate
 
 saveRDS(object = full_new_adjusted_estimates, 
         file = "data/intermediate/adjusted_mye_0_4.rds")
+
+saveRDS(age_5_new_flows, 
+        file = "data/intermediate/age_5_flows.rds") ## HERE, STOPPED. Come back. 
+
 

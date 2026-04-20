@@ -46,6 +46,8 @@ pop_ests_comparisons <- mye_og_ests[adj_ests, on = c("year", "age")]
 pop_ests_comparisons[, difference := adjusted_population - mye_og_population]
 pop_ests_comparisons[, percentage_difference := round(100*(difference/mye_og_population), 2)]
 
+pop_ests_comparisons[age %in% 0:7, ]
+
 
 ## 3. making some static plots of the national population comparisons in the table above
 
@@ -70,5 +72,6 @@ for(age_sel in 0:14){
 }
 
 par(mfrow = c(1, 1))
+
 
 
