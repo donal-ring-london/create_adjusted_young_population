@@ -41,7 +41,7 @@ la_itl_lookup <- unique(la_itl_lookup[, c("ladxxcd", "itl221cd")]) ## the xx is 
 
 gp_data <- gp_data %>% # joining on itl areas, and getting the total population 5-14 in each itl
   left_join(la_itl_lookup, by = c("gss_code" = "ladxxcd")) %>%
-  group_by(itl221cd, year) %>%
+  group_by(itl221cd, year, age) %>%
   mutate(itl_total_value = sum(value)) %>%
   ungroup()
 
@@ -53,12 +53,12 @@ scaling_factors <- gp_data %>% # creating the scaling factors, by dividing the v
 ## 4. applying the scaling factors to total population of pupils to get the initial estimates
 
 pupil_population_at_itl <- pupil_pop %>% # getting total pupils 5-15 at itl - currently it's by single year of age. 
-  group_by(itl221cd, year) %>%
+  group_by(itl221cd, year, age) %>%
   summarise(value = sum(value)) %>%
   ungroup()
 
 population_estimates_la <- scaling_factors %>% # calculating the estimates by applying the scaling factors to the total itl population
-  left_join(pupil_population_at_itl, by = c("itl221cd", "year")) %>%
+  left_join(pupil_population_at_itl, by = c("itl221cd", "year", "age")) %>%
   mutate(population = scaling_factor*value) %>% 
   select(gss_code, year, age, sex, population)
 
@@ -67,7 +67,3 @@ population_estimates_la <- scaling_factors %>% # calculating the estimates by ap
 
 saveRDS(object = population_estimates_la,
         file = "data/intermediate/adjusted_population_estimates_5_15_lad.rds") # the lad version that it uses will be whatever is used in the gp data. Should formalise the setting of this and state it clearly somewhere. 
-
-
-
-

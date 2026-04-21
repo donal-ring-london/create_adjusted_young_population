@@ -31,7 +31,7 @@ adjusted_r_estimates <- data.table(readRDS("data/processed/adjusted_rebuilt_mye_
 
 gp_data <- data.table(readRDS("data/intermediate/gp_sya_lad.rds"))
 
-pupils <- data.table(readRDS("data/intermediate/total_pupils_lad_5_15_2019_2024.rds"))
+pupils <- data.table(readRDS("data/intermediate/total_pupils_lad_5_15_2015_2024.rds"))
 
 pupils_11_19 <- fread("data/intermediate/resident_pupils_lea_ncy_2011_2019_from_cbm.csv")
 
