@@ -5,7 +5,6 @@ library(readr)
 library(dplyr)
 library(tidyr)
 library(stringr)
-library(gsscoder)
 library(data.table)
 
 functions_to_read <- list.files("R/functions")

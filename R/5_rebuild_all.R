@@ -6,7 +6,6 @@ library(readr)
 library(dplyr)
 library(tidyr)
 library(stringr)
-library(gsscoder)
 library(data.table)
 library(readxl)
 

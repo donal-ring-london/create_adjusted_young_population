@@ -7,7 +7,6 @@ library(readr)
 library(dplyr)
 library(tidyr)
 library(stringr)
-library(gsscoder)
 library(data.table)
 library(readxl)
 
@@ -62,27 +61,31 @@ new_international_net_5_15 <- age_5_flows %>%
 
 
 ## 3. using new international net calculated above for ages 5 upwards to adjust the international flows calculated in script 3 for ages 0-4
-## because, for cohorts 2020 onwards, we just rolled forward international flows estimated previously for those ages. Which means that we'll miss out on any real trends in flows after that date. So we use the flows calculated above to add in those trends. 
+## because, for cohorts 2020 onwards, we just rolled forward international flows estimated previously for those ages. Which means that we'll miss out on any real trends in flows after that year. So we use the flows calculated above to add in those trends. 
 ## the idea is that the pupil-derived dataset above will show our best estimate of net flows as they really happened. We don't have these for age 5 (because we don't have population for age 4), so age 6 is the first age we have calculated them for. And we take that age to be the best guide as to what happened for single years of ages 0 to 4. 
 
-adjustment_factor <- new_international_net_5_15 %>% # calculating the absolute increase in net international flows from 2019 to each subsequent year, for age 6
-  filter(age == 6 & year == 2018) %>% # 2019 might actually be the worst year for this. Try 2018. Then if better, maybe should average the last few years before 2019
-  rename(int_net_19 = international_net) %>%
+base_international_flows <- new_international_net_5_15 %>% # calculate the average net international flow age 6, to act as the "base" flows
+  filter(age == 6 & year %in% c(2016:2019)) %>% 
   select(-year) %>%
-  right_join(new_international_net_5_15, by = c("gss_code", "gss_name", "sex", "age")) %>%
+  group_by(gss_code, gss_name, sex, age) %>%
+  summarise(int_net_base = mean(international_net)) %>%
+  ungroup()
+  
+adjustment_factor <- base_international_flows %>%
+  right_join(new_international_net_5_15, by = c("gss_code", "gss_name", "sex", "age")) %>% # calculating the absolute increase in net international flows from the base flows to each year from 2020 onwards. 
   filter(age == 6 & year >= 2020) %>%
-  mutate(increase_since_19 = international_net - int_net_19) %>%
-  select(gss_code, gss_name, sex, year, increase_since_19) %>%
+  mutate(increase_since_base = international_net - int_net_base) %>%
+  select(gss_code, gss_name, sex, year, increase_since_base) %>%
   filter(!grepl("W", gss_code))
 
 adj_mye_0_4_flows_adjusted <- adj_mye_0_4 %>% # adding the adjustment above to the flows
   mutate(cohort = year - age) %>%
   filter(cohort >= 2020 & component == "international_net") %>%
   left_join(adjustment_factor, by = c("gss_code", "gss_name", "sex", "year")) %>% 
-  mutate(value = value + increase_since_19) %>%
+  mutate(value = value + increase_since_base) %>%
   select(gss_code, gss_name, sex, year, age, value, component)
 
-adj_mye_0_4_flows_adjusted[adj_mye_0_4_flows_adjusted$age == 0, ]$value <- adj_mye_0_4_flows_adjusted[adj_mye_0_4_flows_adjusted$age == 0, ]$value/2 # rough for now...take a look
+adj_mye_0_4_flows_adjusted[adj_mye_0_4_flows_adjusted$age == 0, ]$value <- adj_mye_0_4_flows_adjusted[adj_mye_0_4_flows_adjusted$age == 0, ]$value/2 # rough line for now, to adjust for fact that not all aged 0 existed for the full year up to mid year
 
 
 adj_mye_0_4 <- adj_mye_0_4 %>%
