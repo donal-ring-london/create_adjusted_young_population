@@ -26,7 +26,7 @@ unzip(tmp_zip,
 
 spc_cbm_data <- read_csv(file.path(tempdir(), "data/spc_cbm.csv"))
 
-spc_cbm_data_11_19 <- read_csv("data/intermediate/resident_pupils_lea_ncy_2011_2019_from_cbm.csv")
+spc_cbm_data_11_19 <- read_csv("https://data.london.gov.uk/download/ex9jd/jz3/resident_pupils_lea_ncy_2011_2019_from_cbm.csv")
 
 ind_schools <- read_csv(file.path(tempdir(), "data/spc_pupils_age_and_sex.csv"))
 
