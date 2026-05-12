@@ -20,6 +20,7 @@ lapply(
 
 
 ## 1. reading in data
+
 mye_2011_24 <- data.table(readRDS("data/intermediate/mye_2011_on(2023_geog).rds"))
 
 adjusted_estimates <- data.table(readRDS("data/processed/adjusted_rebuilt_mye_backseries.rds"))
@@ -27,14 +28,10 @@ adjusted_estimates <- data.table(readRDS("data/processed/adjusted_rebuilt_mye_ba
 mye_2011_24 <- mye_2011_24[!grep("W", gss_code), ]
 adjusted_estimates <- adjusted_estimates[!grep("W", gss_code), ]
 
-length(unique(mye_2011_24$gss_code))
-
-length(unique(adjusted_estimates$gss_code))
-
 
 ## 2. putting together a table with a side-by-side comparison of the two datasets
 
-mye_og_ests <- mye_2011_24[component == "population" & year >=2019, .(mye_og_population = sum(value)), 
+mye_og_ests <- mye_2011_24[component == "population" & year >= 2019, .(mye_og_population = sum(value)), 
                                                                     by = list(year, age)]
 
 adj_ests <- adjusted_estimates[component == "population" & year >= 2019, .(adjusted_population = sum(value)), 

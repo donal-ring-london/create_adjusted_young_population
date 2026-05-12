@@ -34,7 +34,7 @@ births <- fread("https://data.london.gov.uk/download/2w43n/9698d0b1-663c-4594-86
 
 pupils <- data.table(readRDS("data/intermediate/total_pupils_lad_5_15_2015_2024.rds"))
 
-pupils_11_19 <- fread("data/intermediate/resident_pupils_lea_ncy_2011_2019_from_cbm.csv")
+pupils_11_19 <- fread("https://data.london.gov.uk/download/ex9jd/jz3/resident_pupils_lea_ncy_2011_2019_from_cbm.csv")
 
   ### 1.1. sub task - combining the post and pre-2019 pupil datasets
 pupils_11_19[, age := nc_year + 4]
