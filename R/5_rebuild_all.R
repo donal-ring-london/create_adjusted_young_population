@@ -43,7 +43,7 @@ mye_new_net_flows <- mye_new_components %>%
 
 rebuilt_consistent_population <- create_pop_series(mye_coc = mye_new_components, 
                           modelled_flows = mye_new_net_flows, 
-                          yr_start = 2016,
+                          yr_start = 2001,
                           yr_end = 2024, 
                           age_max = 90)
 
